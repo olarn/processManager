@@ -54,6 +54,7 @@ export class BestBuyFactory {
         flow: 'best-buy',
         step: 'provisioning',
         url: '/provisioning',
+        nextStep: null,
       },
     ].map((processStep) => {
       return new McProcessStep(
