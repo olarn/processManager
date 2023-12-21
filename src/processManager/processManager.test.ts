@@ -1,75 +1,30 @@
-import { McEvent, McFlow, McStep } from './process/mcPayload';
-import { ProcessManager } from './processManager';
-import { McPayload } from './process/mcPayload';
-import { McProcessStep } from './process/mcProcessStep';
+import { MCRequest } from './mcRequest';
+import { MCProcessManager } from './mcProcessManager';
+import { MCStep } from './mcStep';
 
 describe('processManager', () => {
-  let processManager: ProcessManager;
-
-  beforeEach(() => {
-    processManager = new ProcessManager();
+  test('should return PACKAGE_SELECTED when emit request from ORDER_SELECTED step', () => {
+    const request = new MCRequest(
+      'AIS_CONTACT_PACK',
+      'DEVICE_SALE',
+      'ORDER_SELECTED',
+      {}
+    );
+    const processManager = new MCProcessManager(request);
+    const nextStep: MCStep = processManager.emit();
+    expect(nextStep.currentStep).toEqual('ORDER_SELECTED');
   });
 
-  test('perform select handset should return cart step', () => {
-    const payload = new McPayload(
-      McFlow.BEST_BUY,
-      McStep.HANDSET,
-      McEvent.HANDSET_SELECTED,
-      {
-        data: 'data',
-      }
+  test('should return CARE_SELECTED when emit request from PACKAGE_SELECTED step', () => {
+    // arrange
+    const request = new MCRequest(
+      'AIS_CONTACT_PACK',
+      'DEVICE_SALE',
+      'PACKAGE_SELECTED',
+      {}
     );
-    const expectedProcess: McProcessStep = processManager.emit(payload);
-
-    expect(expectedProcess.flow).toEqual(McFlow.BEST_BUY);
-    expect(expectedProcess.step).toEqual(McStep.CART);
-    expect(expectedProcess.url).toEqual('/cart/checkout');
-  });
-
-  test('perform payment from cart should return payment step', () => {
-    const payload = new McPayload(
-      McFlow.BEST_BUY,
-      McStep.CART,
-      McEvent.CART_CHECKED_OUT,
-      {
-        data: 'data',
-      }
-    );
-    const expectedProcess: McProcessStep = processManager.emit(payload);
-
-    expect(expectedProcess.flow).toEqual(McFlow.BEST_BUY);
-    expect(expectedProcess.step).toEqual(McStep.PAYMENT);
-    expect(expectedProcess.url).toEqual('/payment');
-  });
-
-  test('perform payment from cart should return provisioning step', () => {
-    const payload = new McPayload(
-      McFlow.BEST_BUY,
-      McStep.PAYMENT,
-      McEvent.PAYMENT_PERFORMED,
-      {
-        data: 'data',
-      }
-    );
-    const expectedProcess: McProcessStep = processManager.emit(payload);
-
-    expect(expectedProcess.flow).toEqual(McFlow.BEST_BUY);
-    expect(expectedProcess.step).toEqual(McStep.PROVISIONING);
-    expect(expectedProcess.url).toEqual('/provisioning');
-  });
-
-  test('should fail when current step not match', () => {
-    const payload = new McPayload(
-      McFlow.BEST_BUY,
-      McStep.TRAIT,
-      McEvent.HANDSET_SELECTED,
-      {
-        data: 'data',
-      }
-    );
-
-    expect(() => processManager.emit(payload)).toThrow(
-      `Step not found: ${payload.step}`
-    );
+    const processManager = new MCProcessManager(request);
+    const nextStep: MCStep = processManager.emit();
+    expect(nextStep.currentStep).toEqual('PACKAGE_SELECTED');
   });
 });
