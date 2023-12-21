@@ -1,22 +1,21 @@
 import { MCRequest } from './mcRequest';
 import { MCStep } from './mcStep';
-import { MCWorkflow } from './mcWorkflow';
 
 export class MCProcessManager {
-  private workflow: MCWorkflow;
+  private currentStep: MCStep;
   private request: MCRequest;
 
   constructor(request: MCRequest) {
-    this.workflow = this.getWorkFlowFromDB(request);
+    this.currentStep = this.getCurrentStep(request);
     this.request = request;
   }
 
   emit(): MCStep {
-    this.workflow.perform(this.request);
-    return this.workflow.getNextStep();
+    this.currentStep.perform(this.request);
+    return this.currentStep;
   }
 
-  private getWorkFlowFromDB(request: MCRequest): MCWorkflow {
+  private getCurrentStep(request: MCRequest): MCStep {
     const steps: Array<MCStep> = [
       {
         flowCode: 'AIS_CONTACT_PACK',
@@ -63,6 +62,12 @@ export class MCProcessManager {
         )
     );
 
-    return new MCWorkflow(request.currentStep, steps);
+    const currentStep = steps.find(
+      (step) => step.currentStep === request.currentStep
+    );
+    if (!currentStep) {
+      throw new Error('Cannot find current step');
+    }
+    return currentStep;
   }
 }
